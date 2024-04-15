@@ -1,41 +1,22 @@
 package main
 
 import (
-	"net/http"
-	"todo-app/config"
-	"todo-app/helper"
-	"todo-app/model"
+	"log"
 
-	"github.com/go-playground/validator/v10"
-	"github.com/rs/zerolog/log"
+	"github.com/batuhancaam/todo-app/config"
+	"github.com/batuhancaam/todo-app/server"
+	"github.com/spf13/viper"
 )
 
 func main() {
 
-	log.Info().Msg("Started server!")
-	// Database Connection
-	db := config.DatabaseConnection()
-	db.Table("todos").AutoMigrate(&model.Todo{})
-
-	validate := validator.New()
-
-	// Repository Initialize
-	todoRepository := repository.NewTodoRepositoryImpl(db)
-
-	// Service Initialize
-	todoService := service.NewTodoServiceImpl(todoRepository, validate)
-
-	//Controller Initialize
-	todoController := controller.NewTodoController(todoService)
-
-	//Router Initialize
-	routes := router.NewRouter(todoController)
-
-	server := http.Server{
-		Addr:    ":9090",
-		Handler: routes,
+	if err := config.Init(); err != nil {
+		log.Fatalf("%s", err.Error())
 	}
 
-	err := server.ListenAndServe()
-	helper.ErrorPanic(err)
+	server := server.NewServer()
+
+	if err := server.RunServer(viper.GetString("port")); err != nil {
+		log.Fatalf("%s", err.Error())
+	}
 }

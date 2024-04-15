@@ -1,8 +1,8 @@
 package service
 
 import (
-	"todo-app/data/request"
-	"todo-app/data/response"
+	"github.com/batuhancaam/todo-app/todo/data/request"
+	"github.com/batuhancaam/todo-app/todo/data/response"
 )
 
 type TodoService interface {

@@ -1,0 +1,4 @@
+port: 9090
+mysql:
+  todo_table: "todo"
+ 

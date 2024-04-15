@@ -1,6 +1,6 @@
 package repository
 
-import "todo-app/model"
+import "github.com/batuhancaam/todo-app/model"
 
 type TodoRepository interface {
 	Save(todo model.Todo)

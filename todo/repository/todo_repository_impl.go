@@ -1,9 +1,10 @@
 package repository
 
 import (
-	"todo-app/helper"
-	"todo-app/model"
+	"github.com/batuhancaam/todo-app/model"
 
+	"github.com/batuhancaam/todo-app/helper"
+	"github.com/batuhancaam/todo-app/todo/data/request"
 	"gorm.io/gorm"
 )
 
@@ -11,7 +12,8 @@ type TodoRepositoryImpl struct {
 	DB *gorm.DB
 }
 
-func NewTodoRepositoryImpl(DB *gorm.DB) TodoRepository {
+func NewTodoRepositoryImpl(DB *gorm.DB, tableName string) TodoRepository {
+	DB.Table("todos").AutoMigrate(&model.Todo{})
 	return &TodoRepositoryImpl{DB: DB}
 }
 

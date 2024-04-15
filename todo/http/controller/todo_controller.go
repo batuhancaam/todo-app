@@ -4,8 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"todo-app/helper"
-
+	"github.com/batuhancaam/todo-app/helper"
+	"github.com/batuhancaam/todo-app/todo/data/request"
+	"github.com/batuhancaam/todo-app/todo/service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,13 +28,9 @@ func (controller *TodoController) Create(ctx *gin.Context) {
 	helper.ErrorPanic(err)
 
 	controller.todoService.Create(createTodoRequest)
-	webResponse := response.Response{
-		Code:   http.StatusOK,
-		Status: "OK",
-		Data:   nil,
-	}
+
 	ctx.Header("Content-Type", "application/json")
-	ctx.JSON(http.StatusOK, webResponse)
+	ctx.Status(http.StatusCreated)
 }
 
 func (controller *TodoController) Update(ctx *gin.Context) {
@@ -48,13 +45,8 @@ func (controller *TodoController) Update(ctx *gin.Context) {
 	updateTodoRequest.ID = uint(id)
 	controller.todoService.Update(updateTodoRequest)
 
-	webResponse := response.Response{
-		Code:   http.StatusOK,
-		Status: "OK",
-		Data:   nil,
-	}
 	ctx.Header("Content-Type", "application/json")
-	ctx.JSON(http.StatusOK, webResponse)
+	ctx.Status(http.StatusOK)
 
 }
 
@@ -65,13 +57,8 @@ func (controller *TodoController) Delete(ctx *gin.Context) {
 
 	controller.todoService.Delete(uint(id))
 
-	webResponse := response.Response{
-		Code:   http.StatusOK,
-		Status: "OK",
-		Data:   nil,
-	}
 	ctx.Header("Content-Type", "application/json")
-	ctx.JSON(http.StatusOK, webResponse)
+	ctx.Status(http.StatusOK)
 }
 
 func (controller *TodoController) FindByID(ctx *gin.Context) {
@@ -82,24 +69,14 @@ func (controller *TodoController) FindByID(ctx *gin.Context) {
 
 	todoResponse := controller.todoService.FindByID(uint(id))
 
-	webResponse := response.Response{
-		Code:   http.StatusOK,
-		Status: "OK",
-		Data:   todoResponse,
-	}
 	ctx.Header("Content-Type", "application/json")
-	ctx.JSON(http.StatusOK, webResponse)
+	ctx.JSON(http.StatusOK, todoResponse)
 }
 
 func (controller *TodoController) FindAll(ctx *gin.Context) {
 	todosResponse := controller.todoService.FindAll()
 
-	webResponse := response.Response{
-		Code:   http.StatusOK,
-		Status: "OK",
-		Data:   todosResponse,
-	}
 	ctx.Header("Content-Type", "application/json")
-	ctx.JSON(http.StatusOK, webResponse)
+	ctx.JSON(http.StatusOK, todosResponse)
 
 }

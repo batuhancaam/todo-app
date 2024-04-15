@@ -1,12 +1,12 @@
 package service
 
 import (
-	"todo-app/data/request"
-	"todo-app/data/response"
-	"todo-app/helper"
-	"todo-app/model"
-
-	"github.com/go-playground/validator/v10"
+	"github.com/batuhancaam/todo-app/helper"
+	"github.com/batuhancaam/todo-app/model"
+	"github.com/batuhancaam/todo-app/todo/data/request"
+	"github.com/batuhancaam/todo-app/todo/data/response"
+	"github.com/batuhancaam/todo-app/todo/repository"
+	"github.com/go-playground/validator"
 )
 
 type TodoServiceImpl struct {
