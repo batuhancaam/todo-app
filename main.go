@@ -3,12 +3,8 @@ package main
 import (
 	"net/http"
 	"todo-app/config"
-	"todo-app/controller"
 	"todo-app/helper"
 	"todo-app/model"
-	"todo-app/repository"
-	"todo-app/router"
-	"todo-app/service"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/rs/zerolog/log"

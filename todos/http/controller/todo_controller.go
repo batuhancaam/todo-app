@@ -3,10 +3,8 @@ package controller
 import (
 	"net/http"
 	"strconv"
-	"todo-app/data/request"
-	"todo-app/data/response"
+
 	"todo-app/helper"
-	"todo-app/service"
 
 	"github.com/gin-gonic/gin"
 )
