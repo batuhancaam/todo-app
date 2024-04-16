@@ -13,7 +13,7 @@ type TodoRepositoryImpl struct {
 }
 
 func NewTodoRepositoryImpl(DB *gorm.DB, tableName string) TodoRepository {
-	DB.Table("todos").AutoMigrate(&model.Todo{})
+	DB.Table(tableName).AutoMigrate(&model.Todo{})
 	return &TodoRepositoryImpl{DB: DB}
 }
 

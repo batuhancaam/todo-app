@@ -9,10 +9,15 @@ import (
 	"time"
 
 	"github.com/batuhancaam/todo-app/helper"
-	"github.com/batuhancaam/todo-app/todo/http/controller"
-	todorouter "github.com/batuhancaam/todo-app/todo/http/router"
-	"github.com/batuhancaam/todo-app/todo/repository"
-	"github.com/batuhancaam/todo-app/todo/service"
+	tdcont "github.com/batuhancaam/todo-app/todo/http/controller"
+	tdrouter "github.com/batuhancaam/todo-app/todo/http/router"
+	tdrepo "github.com/batuhancaam/todo-app/todo/repository"
+	tdservice "github.com/batuhancaam/todo-app/todo/service"
+
+	usrcont "github.com/batuhancaam/todo-app/user/http/controller"
+	usrrouter "github.com/batuhancaam/todo-app/user/http/router"
+	usrrepo "github.com/batuhancaam/todo-app/user/repository"
+	usrservice "github.com/batuhancaam/todo-app/user/service"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
 	"github.com/joho/godotenv"
@@ -24,7 +29,8 @@ import (
 type Server struct {
 	httpServer *http.Server
 
-	tdController controller.TodoController
+	tdController  tdcont.TodoController
+	usrController usrcont.UserController
 }
 
 func NewServer() *Server {
@@ -32,11 +38,17 @@ func NewServer() *Server {
 	validate := validator.New()
 	db := initDB()
 
-	tdRepo := repository.NewTodoRepositoryImpl(db, viper.GetString("mysql.todo_table"))
-	tdService := service.NewTodoServiceImpl(tdRepo, validate)
+	// Todo process injections
+	tdRepo := tdrepo.NewTodoRepositoryImpl(db, viper.GetString("mysql.todo_table"))
+	tdService := tdservice.NewTodoServiceImpl(tdRepo, validate)
+
+	// User process injections
+	usrRepo := usrrepo.NewUserRepositoryImpl(db, viper.GetString("mysql.user_table"))
+	usrService := usrservice.NewUserServiceImpl(usrRepo, validate)
 
 	return &Server{
-		tdController: *controller.NewTodoController(tdService),
+		tdController:  *tdcont.NewTodoController(tdService),
+		usrController: *usrcont.NewUserController(usrService),
 	}
 
 }
@@ -47,8 +59,10 @@ func (s *Server) RunServer(port string) error {
 		gin.Recovery(),
 		gin.Logger(),
 	)
+
+	usrrouter.RegisterEndpoints(router, &s.usrController)
 	api := router.Group("/api")
-	todorouter.RegisterEndpoints(api, &s.tdController)
+	tdrouter.RegisterEndpoints(api, &s.tdController)
 
 	s.httpServer = &http.Server{
 		Addr:    ":" + viper.GetString("port"),
