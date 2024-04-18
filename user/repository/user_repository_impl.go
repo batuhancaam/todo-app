@@ -10,8 +10,8 @@ type UserRepositoryImpl struct {
 	DB *gorm.DB
 }
 
-func NewUserRepositoryImpl(DB *gorm.DB, tableName string) UserRepository {
-	DB.Table(tableName).AutoMigrate(&model.User{})
+func NewUserRepositoryImpl(DB *gorm.DB) UserRepository {
+	DB.AutoMigrate(&model.User{}, &model.Todo{})
 	return &UserRepositoryImpl{
 		DB: DB,
 	}

@@ -15,6 +15,7 @@ import (
 	tdservice "github.com/batuhancaam/todo-app/todo/service"
 
 	usrcont "github.com/batuhancaam/todo-app/user/http/controller"
+	"github.com/batuhancaam/todo-app/user/http/middleware"
 	usrrouter "github.com/batuhancaam/todo-app/user/http/router"
 	usrrepo "github.com/batuhancaam/todo-app/user/repository"
 	usrservice "github.com/batuhancaam/todo-app/user/service"
@@ -31,6 +32,7 @@ type Server struct {
 
 	tdController  tdcont.TodoController
 	usrController usrcont.UserController
+	usrService    usrservice.UserService
 }
 
 func NewServer() *Server {
@@ -39,16 +41,17 @@ func NewServer() *Server {
 	db := initDB()
 
 	// Todo process injections
-	tdRepo := tdrepo.NewTodoRepositoryImpl(db, viper.GetString("mysql.todo_table"))
+	tdRepo := tdrepo.NewTodoRepositoryImpl(db)
 	tdService := tdservice.NewTodoServiceImpl(tdRepo, validate)
 
 	// User process injections
-	usrRepo := usrrepo.NewUserRepositoryImpl(db, viper.GetString("mysql.user_table"))
+	usrRepo := usrrepo.NewUserRepositoryImpl(db)
 	usrService := usrservice.NewUserServiceImpl(usrRepo, validate)
 
 	return &Server{
 		tdController:  *tdcont.NewTodoController(tdService),
 		usrController: *usrcont.NewUserController(usrService),
+		usrService:    usrService,
 	}
 
 }
@@ -61,7 +64,9 @@ func (s *Server) RunServer(port string) error {
 	)
 
 	usrrouter.RegisterEndpoints(router, &s.usrController)
-	api := router.Group("/api")
+
+	authMiddleware := middleware.NewAuthMiddleware(s.usrService)
+	api := router.Group("/api", authMiddleware)
 	tdrouter.RegisterEndpoints(api, &s.tdController)
 
 	s.httpServer = &http.Server{

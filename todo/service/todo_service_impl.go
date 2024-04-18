@@ -14,8 +14,15 @@ type TodoServiceImpl struct {
 	validate       *validator.Validate
 }
 
+func NewTodoServiceImpl(todoRepository repository.TodoRepository, validate *validator.Validate) TodoService {
+	return &TodoServiceImpl{
+		TodoRepository: todoRepository,
+		validate:       validate,
+	}
+}
+
 // Create implements TodoService.
-func (t *TodoServiceImpl) Create(todo request.CreateTodoRequest) {
+func (t *TodoServiceImpl) Create(todo request.CreateTodoRequest, user *model.User) {
 	err := t.validate.Struct(todo)
 	helper.ErrorPanic(err)
 
@@ -26,17 +33,17 @@ func (t *TodoServiceImpl) Create(todo request.CreateTodoRequest) {
 		Completed: todo.Completed,
 	}
 
-	t.TodoRepository.Save(todoModel)
+	t.TodoRepository.Save(todoModel, user)
 }
 
 // Delete implements TodoService.
-func (t *TodoServiceImpl) Delete(todoId uint) {
-	t.TodoRepository.Delete(todoId)
+func (t *TodoServiceImpl) Delete(todoId uint, user *model.User) {
+	t.TodoRepository.Delete(todoId, user)
 }
 
 // FindAll implements TodoService.
-func (t *TodoServiceImpl) FindAll() []response.TodoResponse {
-	result := t.TodoRepository.FindAll()
+func (t *TodoServiceImpl) FindAll(user *model.User) []response.TodoResponse {
+	result := t.TodoRepository.FindAll(user)
 
 	var todos []response.TodoResponse
 
@@ -55,8 +62,8 @@ func (t *TodoServiceImpl) FindAll() []response.TodoResponse {
 }
 
 // FindByID implements TodoService.
-func (t *TodoServiceImpl) FindByID(todoId uint) response.TodoResponse {
-	todoData, err := t.TodoRepository.FindByID(todoId)
+func (t *TodoServiceImpl) FindByID(todoId uint, user *model.User) response.TodoResponse {
+	todoData, err := t.TodoRepository.FindByID(todoId, user)
 
 	helper.ErrorPanic(err)
 
@@ -73,8 +80,8 @@ func (t *TodoServiceImpl) FindByID(todoId uint) response.TodoResponse {
 }
 
 // Update implements TodoService.
-func (t *TodoServiceImpl) Update(todo request.UpdateTodoRequest) {
-	todoData, err := t.TodoRepository.FindByID(todo.ID)
+func (t *TodoServiceImpl) Update(todo request.UpdateTodoRequest, user *model.User) {
+	todoData, err := t.TodoRepository.FindByID(todo.ID, user)
 	helper.ErrorPanic(err)
 
 	todoData.Task = todo.Task
@@ -83,11 +90,4 @@ func (t *TodoServiceImpl) Update(todo request.UpdateTodoRequest) {
 	todoData.Completed = todo.Completed
 
 	t.TodoRepository.Update(todoData)
-}
-
-func NewTodoServiceImpl(todoRepository repository.TodoRepository, validate *validator.Validate) TodoService {
-	return &TodoServiceImpl{
-		TodoRepository: todoRepository,
-		validate:       validate,
-	}
 }

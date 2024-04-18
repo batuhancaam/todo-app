@@ -8,47 +8,19 @@ import (
 	"gorm.io/gorm"
 )
 
+// TODO: Refactor
 type TodoRepositoryImpl struct {
 	DB *gorm.DB
 }
 
-func NewTodoRepositoryImpl(DB *gorm.DB, tableName string) TodoRepository {
-	DB.Table(tableName).AutoMigrate(&model.Todo{})
+func NewTodoRepositoryImpl(DB *gorm.DB) TodoRepository {
 	return &TodoRepositoryImpl{DB: DB}
 }
 
-// Delete implements TodoRepository.
-func (t *TodoRepositoryImpl) Delete(todoId uint) {
-	var todo model.Todo
-	result := t.DB.Where("id =?", todoId).Delete(&todo)
-	helper.ErrorPanic(result.Error)
-}
-
-// FindAll implements TodoRepository.
-func (t *TodoRepositoryImpl) FindAll() []model.Todo {
-	var todos []model.Todo
-	result := t.DB.Find(&todos)
-	helper.ErrorPanic(result.Error)
-	return todos
-}
-
-// FindByID implements TodoRepository.
-func (t *TodoRepositoryImpl) FindByID(todoId uint) (todo model.Todo, err error) {
-	var todoModel model.Todo
-
-	result := t.DB.First(&todoModel, todoId)
-
-	if result.Error != nil {
-		return todo, result.Error
-	}
-
-	return todoModel, nil
-}
-
 // Save implements TodoRepository.
-func (t *TodoRepositoryImpl) Save(todo model.Todo) {
-	result := t.DB.Create(&todo)
-	helper.ErrorPanic(result.Error)
+func (t *TodoRepositoryImpl) Save(todo model.Todo, user *model.User) {
+	err := t.DB.Model(&user).Association("Todos").Append(&todo)
+	helper.ErrorPanic(err)
 }
 
 // Update implements TodoRepository.
@@ -62,4 +34,32 @@ func (t *TodoRepositoryImpl) Update(todo model.Todo) {
 	}
 	result := t.DB.Model(&todo).Updates(updateTodo)
 	helper.ErrorPanic(result.Error)
+}
+
+// Delete implements TodoRepository.
+func (t *TodoRepositoryImpl) Delete(todoId uint, user *model.User) {
+	todo, err := t.FindByID(todoId, user)
+	helper.ErrorPanic(err)
+	t.DB.Model(&user).Association("Todos").Delete(todo)
+}
+
+// FindByID implements TodoRepository.
+func (t *TodoRepositoryImpl) FindByID(todoId uint, user *model.User) (todo model.Todo, err error) {
+	var todoModel model.Todo
+
+	err = t.DB.Model(&user).Where("id=?", todoId).Association("Todos").Find(&todoModel)
+
+	if err != nil {
+		return todoModel, err
+	}
+
+	return todoModel, nil
+}
+
+// FindAll implements TodoRepository.
+func (t *TodoRepositoryImpl) FindAll(user *model.User) []model.Todo {
+	var todos []model.Todo
+	err := t.DB.Model(&user).Association("Todos").Find(&todos)
+	helper.ErrorPanic(err)
+	return todos
 }

@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+	"fmt"
 	"time"
 
 	"github.com/batuhancaam/todo-app/helper"
@@ -8,15 +10,21 @@ import (
 	"github.com/batuhancaam/todo-app/user/data/request"
 	"github.com/batuhancaam/todo-app/user/repository"
 	"github.com/batuhancaam/todo-app/user/utils"
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/dgrijalva/jwt-go/v4"
 
 	"github.com/go-playground/validator"
 	"github.com/spf13/viper"
 )
 
+// TODO : Add logout and refresh token process
 type UserServiceImpl struct {
 	userRepo  repository.UserRepository
 	validator *validator.Validate
+}
+
+type AuthClaims struct {
+	jwt.StandardClaims
+	User *model.User `json:"user"`
 }
 
 // SingIn implements UserService.
@@ -56,15 +64,36 @@ func (u *UserServiceImpl) SingIn(signInReq request.SignInRequest) (string, error
 	if !utils.VerifyPassword(signInReq.Password, user.Password) {
 		return "", err
 	}
-	var secretKey = []byte("secret-key")
-	expireDuration := time.Second * viper.GetDuration("jwt.expire_time")
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
-		jwt.MapClaims{
-			"email": user.Email,
-			"exp":   time.Now().Add(expireDuration),
-		})
+	secretKey := []byte(viper.GetString("jwt.secret"))
+
+	claims := AuthClaims{
+		User: user,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: jwt.At(time.Now().Add(time.Hour * 24)),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	return token.SignedString(secretKey)
 
+}
+func (u *UserServiceImpl) ParseToken(ctx context.Context, accessToken string) (*model.User, error) {
+	token, err := jwt.ParseWithClaims(accessToken, &AuthClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(viper.GetString("jwt.secret")), nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if claims, ok := token.Claims.(*AuthClaims); ok && token.Valid {
+		return claims.User, nil
+	}
+
+	return nil, err
 }
