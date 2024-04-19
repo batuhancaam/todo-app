@@ -8,6 +8,7 @@ import (
 	"github.com/batuhancaam/todo-app/user/data/response"
 	"github.com/batuhancaam/todo-app/user/service"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 )
 
 type UserController struct {
@@ -35,15 +36,23 @@ func (c *UserController) SingUp(ctx *gin.Context) {
 	ctx.Status(http.StatusCreated)
 }
 
-func (c *UserController) SignIn(ctx *gin.Context) {
+func (c *UserController) Login(ctx *gin.Context) {
 
-	signInRequest := request.SignInRequest{}
+	loginRequest := request.LoginRequest{}
 
-	err := ctx.ShouldBindJSON(&signInRequest)
+	err := ctx.ShouldBindJSON(&loginRequest)
 
-	token, err := c.userService.SingIn(signInRequest)
+	token, err := c.userService.Login(loginRequest)
 
 	helper.ErrorPanic(err)
 
+	ctx.SetCookie("token", token, viper.GetInt("jwt.exp_time"), "/", "localhost", false, true)
+
 	ctx.JSON(http.StatusOK, response.SignInResponse{Token: token})
+}
+
+func (c *UserController) Logout(ctx *gin.Context) {
+
+	ctx.SetCookie("token", "", -1, "/", "localhost", false, true)
+
 }

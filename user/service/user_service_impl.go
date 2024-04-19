@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -16,7 +15,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-// TODO : Add logout and refresh token process
 type UserServiceImpl struct {
 	userRepo  repository.UserRepository
 	validator *validator.Validate
@@ -54,7 +52,7 @@ func (u *UserServiceImpl) SignUp(createUserReq request.CreateUserRequest) {
 	u.userRepo.CreateUser(userModel)
 }
 
-func (u *UserServiceImpl) SingIn(signInReq request.SignInRequest) (string, error) {
+func (u *UserServiceImpl) Login(signInReq request.LoginRequest) (string, error) {
 	err := u.validator.Struct(signInReq)
 	helper.ErrorPanic(err)
 
@@ -79,15 +77,20 @@ func (u *UserServiceImpl) SingIn(signInReq request.SignInRequest) (string, error
 	return token.SignedString(secretKey)
 
 }
-func (u *UserServiceImpl) ParseToken(ctx context.Context, accessToken string) (*model.User, error) {
-	token, err := jwt.ParseWithClaims(accessToken, &AuthClaims{}, func(token *jwt.Token) (interface{}, error) {
+func (u *UserServiceImpl) ParseToken(accessToken string) (*jwt.Token, error) {
+	return jwt.ParseWithClaims(accessToken, &AuthClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(viper.GetString("jwt.secret")), nil
 	})
+}
+
+func (u *UserServiceImpl) GetCurrentUser(accessToken string) (*model.User, error) {
+	token, err := u.ParseToken(accessToken)
 
 	if err != nil {
+
 		return nil, err
 	}
 

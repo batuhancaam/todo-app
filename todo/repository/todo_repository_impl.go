@@ -8,7 +8,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// TODO: Refactor
 type TodoRepositoryImpl struct {
 	DB *gorm.DB
 }
@@ -52,7 +51,9 @@ func (t *TodoRepositoryImpl) FindByID(todoId uint, user *model.User) (todo model
 	if err != nil {
 		return todoModel, err
 	}
-
+	if todoModel.ID == 0 {
+		helper.ErrorPanic(gorm.ErrRecordNotFound)
+	}
 	return todoModel, nil
 }
 

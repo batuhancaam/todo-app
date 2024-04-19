@@ -13,7 +13,6 @@ type AuthMiddleware struct {
 	userService service.UserService
 }
 
-// TODO: Refactor
 func NewAuthMiddleware(userService service.UserService) gin.HandlerFunc {
 	return (&AuthMiddleware{
 		userService: userService,
@@ -38,10 +37,15 @@ func (m *AuthMiddleware) Handle(c *gin.Context) {
 		return
 	}
 
-	user, err := m.userService.ParseToken(c.Request.Context(), aheaderParts[1])
+	token, err := c.Cookie("token")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			c.AbortWithStatus(http.StatusUnauthorized)
+		}
+	}
 
+	user, err := m.userService.GetCurrentUser(token)
 	helper.ErrorPanic(err)
-
 	c.Set("user", user)
 
 }

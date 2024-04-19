@@ -3,9 +3,9 @@ package response
 import "time"
 
 type TodoResponse struct {
-	ID        uint      `json:"id"`
-	Task      string    `json:"name"`
-	StartTime time.Time `json:"startTime"`
-	EndTime   time.Time `json:"endTime"`
-	Completed bool      `json:"completed"`
+	ID        uint      `json:"id,omitempty"`
+	Task      string    `json:"name,omitempty"`
+	StartTime time.Time `json:"startTime,omitempty"`
+	EndTime   time.Time `json:"endTime,omitempty"`
+	Completed bool      `json:"completed,omitempty"`
 }

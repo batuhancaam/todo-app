@@ -7,9 +7,10 @@ import (
 
 func RegisterEndpoints(router *gin.Engine, userController *controller.UserController) {
 
-	auth := router.Group("/auth")
+	auth := router.Group("/")
 
 	auth.POST("/sign-up", userController.SingUp)
-	auth.POST("/sign-in", userController.SignIn)
+	auth.POST("/login", userController.Login)
+	auth.POST("/logout", userController.Logout)
 
 }
