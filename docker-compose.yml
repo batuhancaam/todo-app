@@ -1,0 +1,24 @@
+services:
+  
+  todoapi:
+    build:
+      context: ./
+    ports:
+      - "9090:9090"
+    restart: always
+    depends_on:
+      - tododb
+
+
+
+  tododb:
+    image: mysql:8.0.33
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root123
+    
+    volumes:
+      - ./sql/create_db.sql:/docker-entrypoint-initdb.d/create_db.sql
+
+ 
